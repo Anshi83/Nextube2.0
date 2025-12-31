@@ -18,16 +18,16 @@ const index = () => {
   //   image: "https://github.com/shadcn.png?height=32&width=32",
   // };
   try {
-    let channel = user
+    let channel = user;
     //     id:id,
     //     name:"my channel",
     //     email:"xyz@gmail.com",
     //     description:"welcome to my channel,technology...i welcome oyou all her with love",
     //     joinedOn: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString(),
     // };
-   if (!channel){
-    notFound();
-   }
+   //if (!channel){
+    //notFound();
+   //}
     const videos = [
       {
         _id: "1",
@@ -62,17 +62,17 @@ const index = () => {
             <ChannelHeader channel={channel} user={user} />
             <Channeltabs/>
             <div className="px-4 pb-8">
-            <VideoUploader channelId={id} channelName={channel.channelname} />
+            <VideoUploader channelId={id} channelName={channel?.channelname} />
           </div>
           <div className="px-4 pb-8">
             <ChannelVideo videos={videos} />
           </div>
           </div>
         </div>
-      )
+      );
     } catch (error) {
       console.error("Error fetching channel data:", error);
-     notFound();
+   
     }
   
   

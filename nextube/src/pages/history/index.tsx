@@ -1,13 +1,17 @@
-import HistoryContent from '@/components/HistoryContent'
-import React, { Suspense } from 'react'
+import HistoryContent from "@/components/HistoryContent";
+import React, { Suspense, useEffect, useState } from "react";
 
 const index = () => {
-  
   return (
-    <div><h1 className='text-bold '>Watch History</h1>
-    <Suspense fallback={<div>loading.....</div>}>
-    <HistoryContent/></Suspense></div>
-  )
-}
+    <main className="flex-1 p-6">
+      <div className="max-w-4xl">
+        <h1 className="text-2xl font-bold mb-6">Watch history</h1>
+        <Suspense fallback={<div>Loading...</div>}>
+          <HistoryContent />
+        </Suspense>
+      </div>
+    </main>
+  );
+};
 
-export default index
+export default index;
