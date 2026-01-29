@@ -1,23 +1,22 @@
+import mongoose from "mongoose";
 import users from "../Modals/Auth.js";
 
 export const login = async (req, res) => {
-  const { name, image, email } = req.body;
+  const { email, name, image } = req.body;
+
   try {
     const existingUser = await users.findOne({ email });
+
     if (!existingUser) {
-      try {
-        const newUser = await users.create({ email, name, image });
-        return res.status(200).json({ result: newUser });
-      } catch (error) {
-        res.status(500).json({ message: "something went wrong" });
-        return;
-      }
+      const newUser = await users.create({ email, name, image });
+      return res.status(201).json({ result: newUser });
     } else {
-      res.status(200).json({ result: existingUser });
+      return res.status(200).json({ result: existingUser });
     }
-  } catch (error) {}
-  res.status(500).json({ message: "Something went wrong" });
-  return;
+  } catch (error) {
+    console.error("Login error:", error);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
 };
 export const updateprofile = async (req, res) => {
   const { id: _id } = req.params;
