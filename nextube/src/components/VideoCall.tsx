@@ -4,13 +4,14 @@ import React, { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 
 const socket = io("http://localhost:5000");
-const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-const recordedChunks = useRef<Blob[]>([]);
+
 
 const VideoCall = () => {
   const localVideo = useRef<HTMLVideoElement>(null);
   const remoteVideo = useRef<HTMLVideoElement>(null);
   const peerRef = useRef<RTCPeerConnection | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordedChunks = useRef<Blob[]>([]);
 
   const roomId = "youtube-room";
 

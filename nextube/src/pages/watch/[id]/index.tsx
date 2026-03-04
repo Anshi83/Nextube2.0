@@ -5,9 +5,10 @@ import VideoInfo from "@/components/Videoinfo";
 import Videopplayer from "@/components/Videoplayer";
 import axiosInstance from "@/lib/axiosinstance";
 import { notFound } from "next/navigation";
+import VideoCall from "@/components/VideoCall";
 import { useRouter ,useParams } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
-import VideoCall from "@/components/VideoCall";
+
 
 
 const index = ({ isLightMode }: { isLightMode: boolean }) => {
@@ -98,8 +99,9 @@ const id = params?.id as string;
             <Videopplayer video={videos}
              onNextVideo={handleNextVideo}
              onShowComments={() => setShowComments(true)} />
-             <VideoCall />
+            
             <VideoInfo video={videos} />
+            <VideoCall/>
            <Comments videoId={id} />
             
           </div>

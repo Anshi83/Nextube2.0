@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Button } from "./ui/button";
 import { Bell, Menu, Mic, User, VideoIcon, Search } from "lucide-react";
 import { Input } from "./ui/input";
+import VideoCall from "@/components/VideoCall";
 import PremiumButton from "./PremiumButton";
 import {
   DropdownMenu,
@@ -160,6 +161,7 @@ const Header = ({ isLightMode }: { isLightMode: boolean }) => {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout}>Sign out</DropdownMenuItem>
+                
               </DropdownMenuContent>
             </DropdownMenu>
           </>

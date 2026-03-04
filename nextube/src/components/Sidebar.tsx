@@ -12,7 +12,7 @@ import React, { useState } from "react";
 import { Button } from "./ui/button";
 import Channeldialogue from "./channeldialogue";
 import { useUser } from "@/lib/AuthContext";
-import SubscriptionsPage from "@/app/subscription";
+import SubscriptionsPage from "@/pages/subscription";
 
 const Sidebar = ({ isLightMode }: { isLightMode: boolean }) => {
   const { user } = useUser();
