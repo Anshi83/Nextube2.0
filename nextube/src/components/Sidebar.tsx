@@ -12,13 +12,18 @@ import React, { useState } from "react";
 import { Button } from "./ui/button";
 import Channeldialogue from "./channeldialogue";
 import { useUser } from "@/lib/AuthContext";
+import SubscriptionsPage from "@/app/subscription";
 
-const Sidebar = () => {
+const Sidebar = ({ isLightMode }: { isLightMode: boolean }) => {
   const { user } = useUser();
 
   const [isdialogeopen, setisdialogeopen] = useState(false);
   return (
-    <aside className="w-64 bg-white  border-r min-h-screen p-2">
+    <aside
+      className={`w-64 border-r min-h-screen p-2 ${
+        isLightMode ? "bg-white" : "bg-zinc-950"
+      }`}
+    >
       <nav className="space-y-1">
         <Link href="/">
           <Button variant="ghost" className="w-full justify-start">
@@ -32,7 +37,7 @@ const Sidebar = () => {
             Explore
           </Button>
         </Link>
-        <Link href="/subscriptions">
+        <Link href="/subscription">
           <Button variant="ghost" className="w-full justify-start">
             <PlaySquare className="w-5 h-5 mr-3" />
             Subscriptions

@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Button } from "./ui/button";
 import { Bell, Menu, Mic, User, VideoIcon, Search } from "lucide-react";
 import { Input } from "./ui/input";
+import PremiumButton from "./PremiumButton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,8 +16,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useRouter } from "next/router";
 import Channeldialogue from "./channeldialogue";
 import { useUser } from "@/lib/AuthContext";
+import axiosInstance from "@/lib/axiosinstance";
 
-const Header = () => {
+const Header = ({ isLightMode }: { isLightMode: boolean }) => {
   const { user, logout, handlegooglesignin } = useUser();
   // const user = {
   //   id: "1",
@@ -38,8 +40,27 @@ const Header = () => {
       handleSearch(e as any);
     }
   };
+  const handleMockPremium = async () => {
+    try {
+      // Ensure user exists before accessing _id
+      if (!user?._id) return alert("Please login first");
+
+      const res = await axiosInstance.post("/payment/verify", {
+        userId: user._id,
+        mockSuccess: true 
+      });
+      if (res.status === 200) {
+        alert("Test Mode: Premium Activated!");
+        window.location.reload();
+      }
+    } catch (err) {
+      console.error("Payment failed", err);
+    }
+  };
   return (
-    <header className="flex items-center justify-between px-4 py-2 bg-white border-b ">
+    <header className={`h-14 px-4 flex items-center justify-between border-b transition-colors duration-500 ${
+      isLightMode ? 'bg-white border-gray-200 text-black' : 'bg-zinc-950 border-zinc-800 text-white'
+    }`}>
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon">
           <Menu className="w-6 h-6" />
@@ -58,9 +79,11 @@ const Header = () => {
         onSubmit={handleSearch}
         className="flex items-center gap-2 flex-1 max-w-2xl mx-4"
       >
-        <div className="flex flex-1">
+       <div className={`flex items-center border rounded-full px-4 py-1 ${
+          isLightMode ? 'bg-gray-100 border-gray-300' : 'bg-zinc-900 border-zinc-700'
+        }`}>
           <Input
-            type="search"
+            type="text"
             placeholder="Search"
             value={searchQuery}
             onKeyPress={handleKeypress}
@@ -68,7 +91,7 @@ const Header = () => {
             className="rounded-l-full border-r-0 focus-visible:ring-0"
           />
           <Button
-            className="rounded-r-full px-6 bg-gray-50 hover:bg-gray-100 text-gray-600 border border-l-0"
+            className="rounded-r-full px-6 bg-card hover:bg-gray-100 text-gray-600 border border-l-0"
             type="submit"
           >
             <Search className="w-5 h-5" />
@@ -81,6 +104,16 @@ const Header = () => {
       <div className="flex items-center gap-2">
         {user ? (
           <>
+          {user?.isPremium === false && (
+        <Button onClick={handleMockPremium} className="bg-yellow-500 text-black">
+          Upgrade to Premium (Mock)
+        </Button>
+      )}
+
+
+      <Button variant="ghost" size="icon">
+        <VideoIcon className="h-6 w-6" />
+      </Button>
             <Button variant="ghost" size="icon">
               <VideoIcon className="h-6 w-6" />
             </Button>
@@ -143,6 +176,7 @@ const Header = () => {
         )}{" "}
         {""}
       </div>
+      
       <Channeldialogue
         isopen={isdialogueopen}
         onclose={() => setisdialogueopen(false)}

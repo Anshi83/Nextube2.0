@@ -34,31 +34,54 @@ export const UserProvider = ({ children }) => {
         image: firebaseUser.photoURL || "https://github.com/shadcn.png",
       };
       const response = await axiosInstance.post("/user/login", payload);
-      login(response.data.result);
-    } catch (error) {
+      if (response.data && response.data.result) {
+        login(response.data.result);}
+      } catch (error) {
       console.log(error);
     }
   };
   useEffect(() => {
-    const unsubcribe = onAuthStateChanged(auth, async (firebaseuser) => {
-      if (firebaseuser) {
-        try {
-          const payload = {
-            email: firebaseuser.email,
-            name: firebaseuser.displayName,
-            image: firebaseuser.photoURL || "https://github.com/shadcn.png",
-          };
-          const response = await axiosInstance.post("/user/login", payload);
-          login(response.data.result);
-        } catch (error) {
-          console.error(error);
-          logout();
-        }
+    const initAuth = async () => {
+      try {
+        const res = await fetch("https://ipapi.co/json/");
+        const data = await res.json();
+  
+        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+          if (firebaseUser) {
+            const payload = {
+              email: firebaseUser.email,
+              name: firebaseUser.displayName,
+              image: firebaseUser.photoURL || "https://github.com/shadcn.png",
+              region: data.region,
+              mobileNumber: "9999999999",
+            };
+        
+            const response = await axiosInstance.post("/user/login", payload);
+        
+            if (response.data?.result) {
+              login(response.data.result);
+            }
+          } else {
+            logout();
+          }
+        });
+  
+        return unsubscribe;
+      } catch (error) {
+        console.error("Region fetch failed:", error.message);
       }
-    }
-);
-return () => unsubcribe();
-  },[]);
+    };
+  
+    let cleanup;
+  
+    initAuth().then((unsub) => {
+      cleanup = unsub;
+    });
+  
+    return () => {
+      if (cleanup) cleanup();
+    };
+  }, []);
   return (
     <UserContext.Provider value={{ user, login, logout, handlegooglesignin }}>
       {children}

@@ -1,6 +1,8 @@
+import { Server } from "socket.io";
+import http from "http";
+import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import bodyParser from "body-parser";
 import mongoose from "mongoose";
 import userroutes from "./routes/auth.js";
@@ -9,13 +11,14 @@ import likeroutes from "./routes/like.js";
 import watchlaterroutes from "./routes/watchlater.js";
 import historyrroutes from "./routes/history.js";
 import commentroutes from "./routes/comment.js";
+import paymentRoutes from "./routes/Payment.js";
 dotenv.config();
 const app = express();
 import path from "path";
-app.use(cors());
+app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 app.use(express.json({ limit: "30mb", extended: true }));
 app.use(express.urlencoded({ limit: "30mb", extended: true }));
-app.use("/uploads", express.static(path.join("uploads")));
+
 app.get("/", (req, res) => {
   res.send("You tube backend is working");
 });
@@ -26,10 +29,45 @@ app.use("/like", likeroutes);
 app.use("/watch", watchlaterroutes);
 app.use("/history", historyrroutes);
 app.use("/comment", commentroutes);
+app.use("/payment", paymentRoutes);
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`server running on port ${PORT}`);
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"],
+  },
+});
+
+io.on("connection", (socket) => {
+  console.log("User connected:", socket.id);
+
+  socket.on("join-room", (roomId) => {
+    socket.join(roomId);
+  });
+
+  socket.on("offer", (data) => {
+    socket.to(data.roomId).emit("offer", data.offer);
+  });
+
+  socket.on("answer", (data) => {
+    socket.to(data.roomId).emit("answer", data.answer);
+  });
+
+  socket.on("ice-candidate", (data) => {
+    socket.to(data.roomId).emit("ice-candidate", data.candidate);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected");
+  });
+});
+
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
 
 const DBURL = process.env.DB_URL;

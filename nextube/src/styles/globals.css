@@ -136,3 +136,13 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  .bg-card:hover {
+    background-color: var(--background) !important;
+  }
+
+  .bg-card:active {
+    background-color: var(--background) !important;
+  }
+}

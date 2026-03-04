@@ -11,9 +11,10 @@ const commentschema = mongoose.Schema(
       ref: "videofiles",
       required: true,
     },
-    commentbody: { type: String },
+    commentbody: { type: String , required:true },//required
     usercommented: { type: String },
-    commentedon: { type: Date, default: Date.now },
+    city: { type: String, default: "Unknown" },//added city field
+        commentedon: { type: Date, default: Date.now },
   },
   {
     timestamps: true,

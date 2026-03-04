@@ -5,6 +5,7 @@ import { Button } from "./ui/button";
 import { formatDistanceToNow } from "date-fns";
 import { useUser } from "@/lib/AuthContext";
 import axiosInstance from "@/lib/axiosinstance";
+import axios from "axios";
 interface Comment {
   _id: string;
   videoid: string;
@@ -12,6 +13,7 @@ interface Comment {
   commentbody: string;
   usercommented: string;
   commentedon: string;
+  city?: string; // EDITED: Added city
 }
 const Comments = ({ videoId }: any) => {
   const [comments, setComments] = useState<Comment[]>([]);
@@ -21,6 +23,15 @@ const Comments = ({ videoId }: any) => {
   const [editText, setEditText] = useState("");
   const { user } = useUser();
   const [loading, setLoading] = useState(true);
+  const [likes, setLikes] = useState<{ [key: string]: number }>({});
+  const [dislikes, setDislikes] = useState<{ [key: string]: number }>({});
+  const [translatedComments, setTranslatedComments] = useState<{
+    [key: string]: string;
+  }>({});
+  const [translatingId, setTranslatingId] = useState<string | null>(null);
+  const [selectedLanguage, setSelectedLanguage] = useState("en");
+  
+
   const fetchedComments = [
     {
       _id: "1",
@@ -58,7 +69,13 @@ const Comments = ({ videoId }: any) => {
   }
   const handleSubmitComment = async () => {
     if (!user || !newComment.trim()) return;
-
+// --- EDITED: Special Character Validation ---
+const specialCharRegex = /[^a-zA-Z0-9\s.,!?]/;
+if (specialCharRegex.test(newComment)) {
+  alert("Special characters are not allowed in comments.");
+  return;
+}
+// --------------------------------------------
     setIsSubmitting(true);
     try {
       const res = await axiosInstance.post("/comment/postcomment", {
@@ -92,15 +109,18 @@ const Comments = ({ videoId }: any) => {
   };
 
   const handleUpdateComment = async () => {
-    if (!editText.trim()) return;
+    if (!editText.trim() || !editingCommentId) return; // Added check for ID
     try {
       const res = await axiosInstance.post(
         `/comment/editcomment/${editingCommentId}`,
         { commentbody: editText }
       );
+      
+      // Check if res.data exists (Backend returns the updated comment object)
       if (res.data) {
         setComments((prev) =>
           prev.map((c) =>
+            // Update the specific comment in the list with the new text
             c._id === editingCommentId ? { ...c, commentbody: editText } : c
           )
         );
@@ -115,13 +135,71 @@ const Comments = ({ videoId }: any) => {
   const handleDelete = async (id: string) => {
     try {
       const res = await axiosInstance.delete(`/comment/deletecomment/${id}`);
-      if (res.data.comment) {
+      
+      // Ensure we remove it from the UI immediately if the request is successful
+      if (res.status === 200) {
         setComments((prev) => prev.filter((c) => c._id !== id));
       }
     } catch (error) {
-      console.log(error);
+      console.error("Delete failed:", error);
     }
   };
+  const handleLike = (id: string) => {
+    setLikes((prev) => ({
+      ...prev,
+      [id]: (prev[id] || 0) + 1,
+    }));
+  };
+
+  {/*const handleDislike = (id: string) => {
+    setDislikes((prev) => ({
+      ...prev,
+      [id]: (prev[id] || 0) + 1,
+    }));
+  };*/}
+  const handleDislike = async (id: string) => {
+    const newCount = (dislikes[id] || 0) + 1;
+    
+    // --- EDITED: Auto-Delete if 2 dislikes ---
+    if (newCount >= 2) {
+      alert("Comment removed due to 2 dislikes.");
+      handleDelete(id); 
+    } else {
+      setDislikes((prev) => ({ ...prev, [id]: newCount }));
+    }
+    // -----------------------------------------
+  };
+
+  // frontend/comments.tsx
+
+const handleTranslate = async (comment: any) => {
+  // Prevent clicking again while already translating
+  if (translatingId === comment._id) return;
+
+  setTranslatingId(comment._id); // Start loading state
+  try {
+    const res = await axiosInstance.post("/comment/translate", {
+      text: comment.commentbody,
+      targetLang: selectedLanguage, // Uses the selected language from state
+    });
+
+    if (res.data && res.data.translatedText) {
+      setTranslatedComments((prev) => ({
+        ...prev,
+        [comment._id]: res.data.translatedText,
+      }));
+    }
+  } catch (error: any) {
+    console.error("Translation error", error);
+    // Show a user-friendly alert instead of just crashing
+    const errorMsg = error.response?.data?.message || "Translation failed. Try again later.";
+    alert(errorMsg);
+  } finally {
+    setTranslatingId(null); // Stop loading state
+  }
+};
+  if (loading) return <div>Loading...</div>;
+
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-semibold">{comments.length} Comments</h2>
@@ -137,7 +215,7 @@ const Comments = ({ videoId }: any) => {
               placeholder="Add a comment..."
               value={newComment}
               onChange={(e: any) => setNewComment(e.target.value)}
-              className="min-h-[80px] resize-none border-0 border-b-2 rounded-none focus-visible:ring-0"
+              className="min-h-20 resize-none border-0 border-b-2 rounded-none focus-visible:ring-0"
             />
             <div className="flex gap-2 justify-end">
               <Button
@@ -173,6 +251,9 @@ const Comments = ({ videoId }: any) => {
                 <div className="flex items-center gap-2 mb-1">
                   <span className="font-medium text-sm">
                     {comment.usercommented}
+                    {/* --- EDITED: Show City --- */}
+                  <span className="ml-2 text-xs text-blue-500">({comment.city || "Unknown"})</span>
+                  {/* ------------------------- */}
                   </span>
                   <span className="text-xs text-gray-600">
                     {formatDistanceToNow(new Date(comment.commentedon))} ago
@@ -205,7 +286,43 @@ const Comments = ({ videoId }: any) => {
                   </div>
                 ) : (
                   <>
-                    <p className="text-sm">{comment.commentbody}</p>
+                    <p className="text-sm">
+                      {translatedComments[comment._id] || comment.commentbody}
+                    </p>
+
+                    <div className="flex gap-4 mt-2 text-sm text-gray-600">
+                      <button onClick={() => handleLike(comment._id)}>
+                        👍 {likes[comment._id] || 0}
+                      </button>
+
+                      <button onClick={() => handleDislike(comment._id)}>
+                        👎 {dislikes[comment._id] || 0}
+                      </button>
+                      <select
+                        value={selectedLanguage}
+                        onChange={(e) => setSelectedLanguage(e.target.value)}
+                      >
+                        <option value="en">English</option>
+                        <option value="hi">Hindi</option>
+                        <option value="fr">French</option>
+                        <option value="es">Spanish</option>
+                        <option value="de">German</option>
+                        <option value="ja">Japanese</option>
+                        <option value="ar">Arabic</option>
+                        <option value="ru">Russian</option>
+                        <option value="zh-cn">Chinese</option>
+                      </select>
+
+                      <button
+                        onClick={() => handleTranslate(comment)}
+                        disabled={translatingId === comment._id}
+                      >
+                        {translatingId === comment._id
+                          ? "Translating..."
+                          : "🌍 Translate"}
+                      </button>
+                    </div>
+
                     {comment.userid === user?._id && (
                       <div className="flex gap-2 mt-2 text-sm text-gray-500">
                         <button onClick={() => handleEdit(comment)}>

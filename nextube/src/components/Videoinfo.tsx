@@ -111,12 +111,39 @@ const VideoInfo = ({ video }: any) => {
       console.log(error);
     }
   };
+  const onDownload = async () => {
+    if (!user) return alert("Please login to download");
+    try {
+      const res = await axiosInstance.post("/video/download", {
+        userId: user._id,
+        videoId: video._id,
+      });
+
+      if (res.status === 200) {
+        // FIX: Ensure the URL points to your backend (usually localhost:5000)
+        // video.filepath usually looks like "uploads/filename.mp4"
+        const backendBaseUrl = "http://localhost:5500";
+        const fileUrl = `${backendBaseUrl}/${video.filepath}`;
+
+        const link = document.createElement("a");
+        link.href = fileUrl;
+        link.setAttribute("download", video.filename);
+        link.setAttribute("target", "_blank"); // Helps browser bypass some security blocks
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    } catch (error: any) {
+      const serverMessage = error.response?.data?.message || "Download failed";
+      alert(serverMessage);
+    }
+  };
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-semibold">{video.videotitle}</h1>
 
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 bg-card ">
           <Avatar className="w-10 h-10">
             <AvatarFallback>{video.videochanel[0]}</AvatarFallback>
           </Avatar>
@@ -127,7 +154,9 @@ const VideoInfo = ({ video }: any) => {
           <Button className="ml-4">Subscribe</Button>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex items-center bg-gray-100 rounded-full">
+          <div
+            className="flex items-center bg-card rounded-full 
+  ">
             <Button
               variant="ghost"
               size="sm"
@@ -136,7 +165,7 @@ const VideoInfo = ({ video }: any) => {
             >
               <ThumbsUp
                 className={`w-5 h-5 mr-2 ${
-                  isLiked ? "fill-black text-black" : ""
+                  isLiked ? "fill-current text-primary" : ""
                 }`}
               />
               {likes.toLocaleString()}
@@ -150,7 +179,7 @@ const VideoInfo = ({ video }: any) => {
             >
               <ThumbsDown
                 className={`w-5 h-5 mr-2 ${
-                  isDisliked ? "fill-black text-black" : ""
+                  isDisliked ? "fill-current text-primary" : ""
                 }`}
               />
               {dislikes.toLocaleString()}
@@ -159,7 +188,7 @@ const VideoInfo = ({ video }: any) => {
           <Button
             variant="ghost"
             size="sm"
-            className={`bg-gray-100 rounded-full ${
+            className={`bg-card rounded-full ${
               isWatchLater ? "text-primary" : ""
             }`}
             onClick={handleWatchLater}
@@ -167,32 +196,25 @@ const VideoInfo = ({ video }: any) => {
             <Clock className="w-5 h-5 mr-2" />
             {isWatchLater ? "Saved" : "Watch Later"}
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="bg-gray-100 rounded-full"
-          >
+          <Button variant="ghost" size="sm" className="bg-card rounded-full">
             <Share className="w-5 h-5 mr-2" />
             Share
           </Button>
           <Button
             variant="ghost"
             size="sm"
-            className="bg-gray-100 rounded-full"
+            className="bg-card rounded-full"
+            onClick={onDownload}
           >
             <Download className="w-5 h-5 mr-2" />
             Download
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="bg-gray-100 rounded-full"
-          >
+          <Button variant="ghost" size="icon" className="bg-card rounded-full">
             <MoreHorizontal className="w-5 h-5" />
           </Button>
         </div>
       </div>
-      <div className="bg-gray-100 rounded-lg p-4">
+      <div className="bg-card rounded-lg p-4">
         <div className="flex gap-4 text-sm font-medium mb-2">
           <span>{video.views.toLocaleString()} views</span>
           <span>{formatDistanceToNow(new Date(video.createdAt))} ago</span>

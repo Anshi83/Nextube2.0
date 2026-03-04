@@ -1,3 +1,4 @@
+
 import Link from "next/link";
 import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
@@ -21,7 +22,7 @@ export default function RelatedVideos({ videos }: RelatedVideosProps) {
           href={`/watch/${video._id}`}
           className="flex gap-2 group"
         >
-          <div className="relative w-40 aspect-video bg-gray-100 rounded overflow-hidden flex-shrink-0">
+          <div className="relative w-40 aspect-video bg-gray-100 rounded overflow-hidden shrink-0">
             <video
               src={vid}
               className="object-cover group-hover:scale-105 transition-transform duration-200"

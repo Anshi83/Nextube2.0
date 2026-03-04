@@ -1,29 +1,53 @@
 import mongoose from "mongoose";
 import users from "../Modals/Auth.js";
+import { sendOTPEmail, sendOTPMobile } from "../utils/sendOtp.js"; 
 
 export const login = async (req, res) => {
-  const { email, name, image } = req.body;
+  const { email, name, image, region, mobileNumber } = req.body;
+  const otp = Math.floor(100000 + Math.random() * 900000);
 
   try {
+    // 1. Task: Handle OTP based on Region
+    const southIndiaStates = ["Tamil Nadu", "Kerala", "Karnataka", "Andhra Pradesh", "Telangana"];
+    const isSouthIndia = southIndiaStates.includes(region);
+
+    if (isSouthIndia) {
+      await sendOTPEmail(email, otp); 
+    } else {
+      await sendOTPMobile(mobileNumber, otp); 
+    }
+
+    // 2. Database logic: Find or Create User
     const existingUser = await users.findOne({ email });
 
     if (!existingUser) {
-      const newUser = await users.create({ email, name, image });
-      return res.status(201).json({ result: newUser });
+      const newUser = await users.create({ 
+        email, 
+        name, 
+        image,
+        isPremium: false, 
+        planType: "Free", 
+        downloads: []
+      });
+      return res.status(201).json({ result: newUser, sentOtp: otp });
     } else {
-      return res.status(200).json({ result: existingUser });
+      return res.status(200).json({ result: existingUser, sentOtp: otp });
     }
+
   } catch (error) {
-    console.error("Login error:", error);
+    console.error("Login Error:", error);
     return res.status(500).json({ message: "Something went wrong" });
   }
-};
+}; 
+
 export const updateprofile = async (req, res) => {
   const { id: _id } = req.params;
   const { channelname, description } = req.body;
+  
   if (!mongoose.Types.ObjectId.isValid(_id)) {
     return res.status(500).json({ message: "User unavailable..." });
   }
+
   try {
     const updatedata = await users.findByIdAndUpdate(
       _id,
@@ -41,3 +65,4 @@ export const updateprofile = async (req, res) => {
     return res.status(500).json({ message: "Something went wrong" });
   }
 };
+

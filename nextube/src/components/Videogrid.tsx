@@ -9,9 +9,11 @@ const Videogrid = () => {
     const fetchvideo = async () => {
       try {
         const res = await axiosInstance.get("/video/getall");
-        setvideo(res.data);
+        // Ensure you are setting an array even if res.data is undefined
+        setvideo(Array.isArray(res.data) ? res.data : []); 
       } catch (error) {
         console.log(error);
+        setvideo([]); // Set to empty array on error to prevent crash
       } finally {
         setloading(false);
       }
@@ -52,7 +54,7 @@ const Videogrid = () => {
       {loading ? (
         <>Loading..</>
       ) : (
-        videos.map((video: any) => <Videocard key={video._id} video={video} />)
+        videos?.map((video: any) => <Videocard key={video._id} video={video} />)
       )}
     </div>
   );
