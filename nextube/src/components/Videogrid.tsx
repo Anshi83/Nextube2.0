@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import Videocard from "./videocard";
+import Videocard from "./Videocard";
 import axiosInstance from "@/lib/axiosinstance";
 
 const Videogrid = () => {
