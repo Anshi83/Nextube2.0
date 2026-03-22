@@ -122,7 +122,10 @@ const VideoInfo = ({ video }: any) => {
       if (res.status === 200) {
         // FIX: Ensure the URL points to your backend (usually localhost:5000)
         // video.filepath usually looks like "uploads/filename.mp4"
-        const backendBaseUrl = "http://localhost:5500";
+        const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+
+
+
         const fileUrl = `${backendBaseUrl}/${video.filepath}`;
 
         const link = document.createElement("a");
