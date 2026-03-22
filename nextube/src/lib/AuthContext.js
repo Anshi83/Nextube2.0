@@ -33,7 +33,7 @@ export const UserProvider = ({ children }) => {
         name: firebaseUser.displayName,
         image: firebaseUser.photoURL || "https://github.com/shadcn.png",
       };
-      const response = await axiosInstance.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/user/login`, payload);
+      const response = await axiosInstance.post(`/user/login`, payload);
       if (response.data && response.data.result) {
         login(response.data.result);}
       } catch (error) {
@@ -56,8 +56,8 @@ export const UserProvider = ({ children }) => {
               mobileNumber: "9999999999",
             };
         
-            const response = await axiosInstance.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/user/login`, payload);
-        
+            
+const response = await axiosInstance.post(`/user/login`, payload);
             if (response.data?.result) {
               login(response.data.result);
             }
