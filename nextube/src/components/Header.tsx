@@ -110,14 +110,6 @@ const Header = ({ isLightMode }: { isLightMode: boolean }) => {
           Upgrade to Premium (Mock)
         </Button>
       )}
-
-
-      <Button variant="ghost" size="icon">
-        <VideoIcon className="h-6 w-6" />
-      </Button>
-            <Button variant="ghost" size="icon">
-              <VideoIcon className="h-6 w-6" />
-            </Button>
             <Button variant="ghost" size="icon">
               <Bell className="h-6 w-6" />
             </Button>

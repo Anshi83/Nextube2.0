@@ -28,6 +28,8 @@ const Channeldialogue = ({ isopen, onclose, channeldata, mode }: any) => {
     description: "",
   });
   const [isSubmitting, setisSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
   useEffect(() => {
     if (channeldata && mode === "edit") {
       setFormData({
@@ -40,30 +42,44 @@ const Channeldialogue = ({ isopen, onclose, channeldata, mode }: any) => {
         description: "",
       });
     }
-  }, [channeldata]);
+  }, [channeldata, mode, user]);
+
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+
   const handlesubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const payload = {
-      channelname: formData.name,
-      description: formData.description,
-    };
-    const response = await axiosInstance.patch(
-      `/user/update/${user._id}`,
-      payload
-    );
-    login(response?.data);
-    router.push(`/channel/${user?._id}`);
-    setFormData({
-      name: "",
-      description: "",
-    });
-    onclose();
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+    try {
+      setisSubmitting(true);
+      setError("");
+      const payload = {
+        channelname: formData.name,
+        description: formData.description,
+      };
+      const response = await axiosInstance.patch(
+        `/user/update/${user._id}`,
+        payload
+      );
+      if (response?.data) {
+        login(response.data);
+        router.push(`/channel/${user?._id}`);
+        setFormData({ name: "", description: "" });
+        onclose();
+      }
+    } catch (err: any) {
+      console.error("Channel save failed:", err);
+      setError(err?.response?.data?.message || "Something went wrong. Try again.");
+    } finally {
+      setisSubmitting(false);
+    }
   };
 
   return (
@@ -99,6 +115,9 @@ const Channeldialogue = ({ isopen, onclose, channeldata, mode }: any) => {
             />
           </div>
 
+          {error && (
+            <p className="text-red-500 text-sm">{error}</p>
+          )}
           <DialogFooter className="flex justify-between sm:justify-between">
             <Button type="button" variant="outline" onClick={onclose}>
               Cancel

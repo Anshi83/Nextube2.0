@@ -5,23 +5,31 @@ export const handlehistory = async (req, res) => {
   const { userId } = req.body;
   const { videoId } = req.params;
   try {
-    await history.create({ viewer: userId, videoid: videoId });
-    await video.findByIdAndUpdate(videoId, { $inc: { views: 1 } });
+    // ✅ Deduplication — only add to history and increment views if not already watched
+    const existing = await history.findOne({ viewer: userId, videoid: videoId });
+    if (!existing) {
+      await history.create({ viewer: userId, videoid: videoId });
+      await video.findByIdAndUpdate(videoId, { $inc: { views: 1 } });
+    }
     return res.status(200).json({ history: true });
   } catch (error) {
-    console.error(" error:", error);
+    console.error("error:", error);
     return res.status(500).json({ message: "Something went wrong" });
   }
 };
+
 export const handleview = async (req, res) => {
   const { videoId } = req.params;
   try {
     await video.findByIdAndUpdate(videoId, { $inc: { views: 1 } });
+    // ✅ Added missing response (was hanging before)
+    return res.status(200).json({ views: true });
   } catch (error) {
-    console.error(" error:", error);
+    console.error("error:", error);
     return res.status(500).json({ message: "Something went wrong" });
   }
 };
+
 export const getallhistoryVideo = async (req, res) => {
   const { userId } = req.params;
   try {
@@ -34,7 +42,7 @@ export const getallhistoryVideo = async (req, res) => {
       .exec();
     return res.status(200).json(historyvideo);
   } catch (error) {
-    console.error(" error:", error);
+    console.error("error:", error);
     return res.status(500).json({ message: "Something went wrong" });
   }
 };

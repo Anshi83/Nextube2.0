@@ -1,11 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import io from "socket.io-client";
-
-const socket = io(process.env.NEXT_PUBLIC_BACKEND_URL);
-
-
+import io, { Socket } from "socket.io-client";
 
 const VideoCall = () => {
   const localVideo = useRef<HTMLVideoElement>(null);
@@ -13,10 +9,15 @@ const VideoCall = () => {
   const peerRef = useRef<RTCPeerConnection | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunks = useRef<Blob[]>([]);
+  const socketRef = useRef<Socket | null>(null);
 
   const roomId = "youtube-room";
 
   useEffect(() => {
+    // ✅ Initialize socket inside useEffect to prevent COOP errors
+    socketRef.current = io(process.env.NEXT_PUBLIC_BACKEND_URL!);
+    const socket = socketRef.current;
+
     socket.emit("join-room", roomId);
 
     peerRef.current = new RTCPeerConnection({
@@ -52,6 +53,12 @@ const VideoCall = () => {
     socket.on("ice-candidate", async (candidate) => {
       await peerRef.current?.addIceCandidate(candidate);
     });
+
+    // ✅ Cleanup on unmount
+    return () => {
+      socket.disconnect();
+      peerRef.current?.close();
+    };
   }, []);
   const startRecording = () => {
     if (!remoteVideo.current?.srcObject) {
@@ -113,7 +120,7 @@ const VideoCall = () => {
       const offer = await peerRef.current?.createOffer();
       await peerRef.current?.setLocalDescription(offer);
 
-      socket.emit("offer", { roomId, offer });
+      socketRef.current?.emit("offer", { roomId, offer });
     } catch (error) {
       console.error("Media device error:", error);
       alert("Camera or microphone not found. Check permissions.");
