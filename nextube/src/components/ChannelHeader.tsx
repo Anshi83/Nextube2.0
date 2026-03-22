@@ -7,7 +7,7 @@ const ChannelHeader = ({ channel, user }: any) => {
   return (
     <div className="w-full">
       {/* Banner */}
-      <div className="relative h-32 md:h-48 lg:h-64 bg-gradient-to-r from-blue-400 to-purple-500 overflow-hidden"></div>
+      <div className="relative h-32 md:h-48 lg:h-64 bg-linear-to-r from-blue-400 to-purple-500 overflow-hidden"></div>
 
       <div className="px-4 py-6">
         <div className="flex flex-col md:flex-row gap-6 items-start">

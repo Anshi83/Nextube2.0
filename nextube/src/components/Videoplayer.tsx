@@ -134,10 +134,7 @@ export default function VideoPlayer({
         autoPlay
       >
         <source
-          src={`${process.env.NEXT_PUBLIC_BACKEND_URL}/${video?.filepath.replace(
-            "server/",
-            ""
-          )}`}
+          src={video?.filepath}
           type="video/mp4"
         />
         Your browser does not support the video tag.
