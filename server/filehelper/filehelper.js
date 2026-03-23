@@ -1,7 +1,15 @@
-"use strict";
 import { v2 as cloudinary } from "cloudinary";
 import multer from "multer";
-import CloudinaryStorage from "multer-storage-cloudinary";
+import * as cloudinaryStorage from "multer-storage-cloudinary";
+
+const CloudinaryStorage =
+  cloudinaryStorage.CloudinaryStorage ||
+  cloudinaryStorage.default?.CloudinaryStorage ||
+  cloudinaryStorage.default;
+
+if (!CloudinaryStorage) {
+  throw new Error("CloudinaryStorage import failed");
+}
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -10,7 +18,7 @@ cloudinary.config({
 });
 
 const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
+  cloudinary,
   params: {
     resource_type: "video",
     folder: "nextube-videos",
@@ -19,4 +27,5 @@ const storage = new CloudinaryStorage({
 });
 
 const upload = multer({ storage });
+
 export default upload;
