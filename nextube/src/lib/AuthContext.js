@@ -33,7 +33,7 @@ export const UserProvider = ({ children }) => {
         image: firebaseUser.photoURL || "https://github.com/shadcn.png",
       };
       // ✅ Fixed — no double URL prefix
-      const response = await axiosInstance.post("/User/login", payload);
+      const response = await axiosInstance.post("/user/login", payload);
       if (response.data && response.data.result) {
         login(response.data.result);
       }
@@ -54,7 +54,7 @@ export const UserProvider = ({ children }) => {
             image: firebaseUser.photoURL || "https://github.com/shadcn.png",
           };
           // ✅ Fixed — no double URL prefix
-          const response = await axiosInstance.post("/User/login", payload);
+          const response = await axiosInstance.post("/user/login", payload);
           if (response.data?.result) {
             login(response.data.result);
           }
