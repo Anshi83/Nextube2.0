@@ -59,3 +59,29 @@ export const handleDownload = async (req, res) => {
     res.status(500).json({ message: "Download error" });
   }
 };
+export const uploadvideo = async (req, res) => {
+  console.log("File received:", req.file);
+  console.log("Body received:", req.body);
+  
+  if (req.file === undefined) {
+    return res.status(404).json({ message: "plz upload a mp4 video file only" });
+  }
+  try {
+    const file = new video({
+      videotitle: req.body.videotitle,
+      filename: req.file.originalname,
+      filepath: req.file.path,
+      filetype: req.file.mimetype,
+      filesize: req.file.size,
+      videochanel: req.body.videochanel,
+      uploader: req.body.uploader,
+    });
+    await file.save();
+    return res.status(201).json("file uploaded successfully");
+  } catch (error) {
+    // ✅ This will show the actual error instead of [object Object]
+    console.error("Upload error details:", JSON.stringify(error, null, 2));
+    console.error("Upload error message:", error.message);
+    return res.status(500).json({ message: error.message || "Something went wrong" });
+  }
+};
