@@ -21,9 +21,11 @@ export const uploadvideo = async (req, res) => {
     await file.save();
     return res.status(201).json("file uploaded successfully");
   } catch (error) {
-    console.error("Upload error message:", error.message);
-    console.error("Upload error details:", JSON.stringify(error, null, 2));
-    return res.status(500).json({ message: error.message || "Something went wrong" });
+    console.error("Upload error name:", error?.name);
+  console.error("Upload error message:", error?.message);
+  console.error("Upload error http_code:", error?.http_code);
+  console.error("Upload error string:", String(error));
+  return res.status(500).json({ message: error?.message || String(error) });
   }
 };
 
