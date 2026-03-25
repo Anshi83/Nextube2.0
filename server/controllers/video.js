@@ -1,18 +1,26 @@
+import { v2 as cloudinary } from "cloudinary";
 import video from "../Modals/video.js";
 import User from "../Modals/Auth.js";
 
-export const uploadvideo = async (req, res) => {
-  console.log("File received:", req.file);
-  console.log("Body received:", req.body);
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
-  if (req.file === undefined) {
-    return res.status(404).json({ message: "plz upload a mp4 video file only" });
+export const uploadvideo = async (req, res) => {
+  if (!req.file) {
+    return res.status(404).json({ message: "Please upload a video file" });
   }
   try {
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      resource_type: "video",
+      folder: "nextube-videos",
+    });
     const file = new video({
       videotitle: req.body.videotitle,
       filename: req.file.originalname,
-      filepath: req.file.path, // ✅ Cloudinary full URL
+      filepath: result.secure_url,
       filetype: req.file.mimetype,
       filesize: req.file.size,
       videochanel: req.body.videochanel,
@@ -21,11 +29,8 @@ export const uploadvideo = async (req, res) => {
     await file.save();
     return res.status(201).json("file uploaded successfully");
   } catch (error) {
-    console.error("Upload error name:", error?.name);
-  console.error("Upload error message:", error?.message);
-  console.error("Upload error http_code:", error?.http_code);
-  console.error("Upload error string:", String(error));
-  return res.status(500).json({ message: error?.message || String(error) });
+    console.error("Upload error:", error.message);
+    return res.status(500).json({ message: error.message });
   }
 };
 
@@ -34,7 +39,6 @@ export const getallvideo = async (req, res) => {
     const files = await video.find();
     return res.status(200).send(files);
   } catch (error) {
-    console.error("error:", error);
     return res.status(500).json({ message: "Something went wrong" });
   }
 };
@@ -44,24 +48,19 @@ export const handleDownload = async (req, res) => {
   try {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: "User not found" });
-
     if (!user.isPremium) {
       const today = new Date().setHours(0, 0, 0, 0);
       const downloadsToday = user.downloads.filter(
         (d) => new Date(d.downloadedAt).setHours(0, 0, 0, 0) === today
       );
       if (downloadsToday.length >= 1) {
-        return res.status(403).json({
-          message: "Daily limit reached. Upgrade to Premium for unlimited downloads.",
-        });
+        return res.status(403).json({ message: "Daily limit reached. Upgrade to Premium for unlimited downloads." });
       }
     }
-
     user.downloads.push({ videoId });
     await user.save();
     return res.status(200).json({ message: "Download authorized" });
   } catch (error) {
-    console.error("Download error:", error.message);
     return res.status(500).json({ message: "Download error" });
   }
 };
